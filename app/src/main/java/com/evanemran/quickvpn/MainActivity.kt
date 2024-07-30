@@ -1,20 +1,42 @@
 package com.evanemran.quickvpn
 
+import android.content.Intent
+import android.net.VpnService
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+        val connectButton = findViewById<Button>(R.id.connect_button)
+        connectButton.setOnClickListener { prepareVpn() }
+    }
+
+    private fun prepareVpn() {
+        val intent = VpnService.prepare(this)
+        if (intent != null) {
+            startActivityForResult(intent, 0)
+        } else {
+            onActivityResult(0, RESULT_OK, null)
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == RESULT_OK) {
+            connectToL2tpIpsecVpn()
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun connectToL2tpIpsecVpn() {
+        val intent = Intent(
+            this,
+            MyVpnService::class.java
+        )
+        startService(intent)
     }
 }
